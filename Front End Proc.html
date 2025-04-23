@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Military Procurement Order</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 1.6;
+            margin: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 850px; /* Slightly wider */
+            margin: auto;
+            padding: 25px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #0056b3;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #555;
+        }
+        label.inline-label {
+            display: inline-block;
+            margin-left: 5px;
+            margin-right: 15px;
+            font-weight: normal;
+        }
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input.short-input { /* For quantity, years, deliveries */
+            width: 100px;
+            display: inline-block;
+            margin-left: 10px;
+        }
+        .input-group { /* Group label and input */
+             margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        .delivery-options, .payment-options {
+            margin-top: 10px;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        .inline-input-group { /* For inline label/input pairs */
+            display: inline-block;
+            margin-right: 20px;
+            margin-bottom: 10px; /* Add space below inline groups */
+        }
+        .inline-input-group label {
+             display: inline-block; /* Keep label inline */
+             margin-bottom: 0; /* Remove bottom margin */
+             margin-right: 5px; /* Space between label and input */
+             font-weight: normal;
+        }
+
+        .order-summary, .budget-info {
+            margin-top: 25px;
+            padding: 15px;
+            background-color: #eef;
+            border: 1px solid #cce;
+            border-radius: 5px;
+        }
+        .budget-info strong, .order-summary strong {
+            color: #0056b3;
+        }
+        button { /* General button style */
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        button.remove-item-btn { /* Specific style for remove button */
+            background-color: #dc3545; /* Red */
+            font-size: 12px; /* Smaller text */
+            padding: 5px 10px; /* Smaller padding */
+            margin-left: 15px; /* Space from other elements */
+            display: inline-block; /* Align with other inline elements */
+            vertical-align: middle; /* Align vertically */
+        }
+        button.remove-item-btn:hover {
+            background-color: #c82333; /* Darker red */
+        }
+        .error-message {
+            color: #dc3545;
+            font-weight: bold;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+        }
+        .info-notice { /* General class for notices */
+            font-weight: normal; /* Use normal weight for info */
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            border-radius: 4px;
+            color: #856404;
+            font-size: 0.9em;
+        }
+        .info-notice strong { /* Highlight parts of notice */
+            font-weight: bold;
+            color: inherit; /* Inherit color from parent */
+        }
+        .item-delivery-schedule {
+             color: #155724;
+             background-color: #d4edda;
+             border-color: #c3e6cb;
+        }
+        .item-payment-info {
+             color: #0c5460;
+             background-color: #d1ecf1;
+             border-color: #bee5eb;
+        }
+        .item-approval-notice {
+             /* Style inherited from .info-notice */
+             /* Add specific overrides if needed */
+        }
+         hr {
+            border: 0;
+            height: 1px;
+            background-color: #eee;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .hidden { display: none; }
+        input:disabled, select:disabled, input[readonly] {
+            background-color: #e9ecef;
+            cursor: not-allowed;
+        }
+        /* Style for the disabled, informational checkbox */
+        input[type="checkbox"]:disabled + label {
+            color: #6c757d; /* Grey out label */
+        }
+        .item-actions { /* Container for remove button */
+            text-align: right; /* Align button to the right */
+            margin-top: -10px; /* Adjust spacing */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Military Procurement Order</h1>
+        <p>Submitting order for: <strong>[Placeholder: Country Name]</strong></p>
+
+        <div class="budget-info">
+            <h2>Budget Status</h2>
+             <p>Current Procurement Budget: <strong>[Placeholder: $1,000,000,000]</strong></p>
+        </div>
+
+        <form id="procurement-form" action="/procurement/create" method="post"> <h2>Select Equipment</h2>
+
+            <div id="order-items">
+                <div class="order-item" data-item-id="1">
+                    <div class="input-group">
+                        <label for="equipment_id_1">Equipment:</label>
+                        <select name="order_items[1][equipment_id]" id="equipment_id_1" class="equipment-select" required>
+                            <option value="">-- Select Equipment --</option>
+                            <optgroup label="Native Production">
+                                <option value="eq_tank_t90" data-cost="5000000" data-native="true" data-delivery-time="1 Turn" data-build-time-months="6">T-90 Tank ($5,000,000)</option>
+                                <option value="eq_rifle_ak12" data-cost="1500" data-native="true" data-delivery-time="Immediate" data-build-time-months="0">AK-12 Rifle ($1,500)</option>
+                            </optgroup>
+                            <optgroup label="External Acquisition">
+                                 <option value="eq_jet_f35" data-cost="80000000" data-native="false" data-approval="true" data-delivery-time="6 Months" data-build-time-months="6">F-35 Jet ($80,000,000) - Requires Approval</option>
+                                 <option value="eq_ship_destroyer" data-cost="1000000000" data-native="false" data-approval="false" data-delivery-time="5 Years" data-build-time-months="60">Generic Destroyer ($1,000,000,000)</option>
+                                 <option value="eq_frigate" data-cost="500000000" data-native="false" data-approval="false" data-delivery-time="1 Year" data-build-time-months="12">Generic Frigate ($500,000,000)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="quantity_1">Quantity:</label>
+                        <input type="number" name="order_items[1][quantity]" id="quantity_1" class="quantity-input short-input" min="1" value="1" required>
+                    </div>
+
+                    <div class="delivery-options">
+                        <div class="inline-input-group deliveries-per-year-container hidden">
+                            <label for="deliveries_per_year_1">Deliveries Per Year:</label>
+                            <input type="number" id="deliveries_per_year_1" name="order_items[1][deliveries_per_year]" class="deliveries-per-year-input short-input" min="1" value="1">
+                        </div>
+                         <p class="info-notice item-delivery-schedule hidden">Est. Delivery: <span class="delivery-value"></span></p>
+                    </div>
+
+                    <div class="payment-options">
+                        <div class="inline-input-group">
+                             <input type="checkbox" id="spread_payment_1" name="order_items[1][spread_payment_info]" class="spread-payment-checkbox" disabled>
+                             <label for="spread_payment_1" class="inline-label">Spread Payment (Automatic)</label>
+                        </div>
+                        <div class="inline-input-group payment-years-container hidden">
+                             <label for="payment_years_1">Years:</label>
+                             <input type="number" id="payment_years_1" name="order_items[1][payment_years]" class="payment-years-input short-input" min="1" value="1" readonly> </div>
+                    </div>
+
+                    <p>Item Cost: <span class="item-cost">$0.00</span></p>
+                    <p class="info-notice item-payment-info hidden">Payment: <span class="payment-per-year"></span>/year for <span class="payment-duration"></span> years (Total: <span class="payment-total"></span>)</p>
+                    <p class="info-notice item-approval-notice hidden">Note: This item requires external approval.</p>
+
+                    <div class="item-actions">
+                         <button type="button" class="remove-item-btn">Remove Item</button>
+                    </div>
+
+                    <hr>
+                </div></div><button type="button" id="add-item-btn">Add Another Item</button>
+
+            <div class="order-summary">
+                <h2>Order Summary</h2>
+                <p>Estimated First Year Cost: <strong id="first-year-cost">$0.00</strong></p>
+                <p>Total Order Value: <strong id="total-order-value">$0.00</strong></p>
+                <p>Remaining Budget After First Year Payment: <strong id="remaining-budget">[Placeholder: $1,000,000,000]</strong></p>
+                <div id="global-approval-notice" class="info-notice hidden">
+                    One or more items in this order require external approval before they can be processed.
+                </div>
+                <div id="error-message" class="error-message hidden"></div>
+            </div>
+
+            <button type="submit" id="submit-order-btn">Submit Order</button>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const orderItemsContainer = document.getElementById('order-items');
+            const addItemBtn = document.getElementById('add-item-btn');
+            const firstYearCostEl = document.getElementById('first-year-cost');
+            const totalOrderValueEl = document.getElementById('total-order-value');
+            const remainingBudgetEl = document.getElementById('remaining-budget');
+            const globalApprovalNotice = document.getElementById('global-approval-notice');
+            const errorMessageEl = document.getElementById('error-message');
+            const submitButton = document.getElementById('submit-order-btn');
+            const form = document.getElementById('procurement-form');
+
+            // --- Placeholder Data (Replace with data injected by ERB/Rails) ---
+            const currentBudget = 1000000000; // Example budget
+            // --- End Placeholder Data ---
+
+            let itemCounter = 1; // To give unique IDs/names to added items
+
+            // Function to update total cost, delivery, payment, and validation
+            function updateSummary() {
+                let firstYearTotalCost = 0; // Cost impacting current budget
+                let grandTotalCost = 0;     // Total value of the entire order
+                let requiresApproval = false;
+                let isFormValid = true; // Track overall form validity
+                let itemCount = 0; // Count actual items with selections
+
+                // Iterate through each order item block
+                orderItemsContainer.querySelectorAll('.order-item').forEach(item => {
+                    itemCount++;
+                    // Get references to elements within the current item block
+                    const select = item.querySelector('.equipment-select');
+                    const quantityInput = item.querySelector('.quantity-input');
+                    const itemCostEl = item.querySelector('.item-cost');
+                    const itemApprovalNotice = item.querySelector('.item-approval-notice');
+                    const itemDeliveryScheduleEl = item.querySelector('.item-delivery-schedule');
+                    const deliveryValueEl = item.querySelector('.delivery-value');
+                    const spreadCheckbox = item.querySelector('.spread-payment-checkbox'); // Now informational
+                    const yearsContainer = item.querySelector('.payment-years-container');
+                    const yearsInput = item.querySelector('.payment-years-input'); // Now readonly
+                    const paymentInfoEl = item.querySelector('.item-payment-info');
+                    const paymentPerYearEl = item.querySelector('.payment-per-year');
+                    const paymentTotalEl = item.querySelector('.payment-total');
+                    const paymentDurationEl = item.querySelector('.payment-duration');
+                    const deliveriesPerYearContainer = item.querySelector('.deliveries-per-year-container');
+                    const deliveriesPerYearInput = item.querySelector('.deliveries-per-year-input');
+
+                    // Reset visibility initially for this item
+                    deliveriesPerYearContainer.classList.add('hidden');
+                    itemDeliveryScheduleEl.classList.add('hidden');
+                    itemApprovalNotice.classList.add('hidden');
+                    paymentInfoEl.classList.add('hidden');
+                    yearsContainer.classList.add('hidden');
+                    spreadCheckbox.checked = false; // Reset informational checkbox
+
+
+                    // Get selected equipment data
+                    const selectedOption = select.options[select.selectedIndex];
+                    if (!selectedOption || !selectedOption.value) {
+                         itemCostEl.textContent = formatCurrency(0);
+                         // Don't count this as a valid item for validation if nothing is selected
+                         if (itemCount === 1 && orderItemsContainer.querySelectorAll('.order-item').length === 1) {
+                             // If it's the only item and it's blank, treat form as empty
+                             isFormValid = false;
+                         }
+                         return; // Move to the next item
+                    }
+
+                    // Parse data attributes
+                    const cost = parseFloat(selectedOption.getAttribute('data-cost') || 0);
+                    const needsApproval = selectedOption.getAttribute('data-approval') === 'true';
+                    const deliveryTimeText = selectedOption.getAttribute('data-delivery-time') || 'N/A';
+                    const buildTimeMonths = parseInt(selectedOption.getAttribute('data-build-time-months'), 10);
+                    const quantity = parseInt(quantityInput.value) || 0;
+                    const itemTotal = cost * quantity;
+                    let itemFirstYearCost = itemTotal; // Default cost for first year
+
+                    itemCostEl.textContent = formatCurrency(itemTotal);
+
+                    // --- Delivery Logic ---
+                    let deliveriesPerYear = 1;
+                    let totalDeliveryMonths = NaN; // Use NaN to indicate undetermined/not applicable initially
+
+                    if (!isNaN(buildTimeMonths)) {
+                        if (buildTimeMonths === 0) {
+                            totalDeliveryMonths = 0; // Immediate delivery
+                            deliveriesPerYearContainer.classList.add('hidden');
+                        } else if (buildTimeMonths < 12) {
+                            // Sub-1-year build time: Allow setting delivery rate
+                            deliveriesPerYearContainer.classList.remove('hidden');
+                            deliveriesPerYear = parseInt(deliveriesPerYearInput.value) || 1;
+                            if (deliveriesPerYear < 1) deliveriesPerYear = 1;
+                            deliveriesPerYearInput.value = deliveriesPerYear;
+                            // Calculate total time: time for first + time for rest based on rate
+                            totalDeliveryMonths = buildTimeMonths + ((quantity - 1) * (12 / deliveriesPerYear));
+                        } else {
+                            // Build time >= 12 months: Delivery rate doesn't apply here (simplification)
+                            // Use build time as total time unless quantity is 0
+                            totalDeliveryMonths = quantity > 0 ? buildTimeMonths : 0;
+                            deliveriesPerYearContainer.classList.add('hidden');
+                        }
+                    } else {
+                        // Build time is not a number (N/A)
+                        deliveriesPerYearContainer.classList.add('hidden');
+                    }
+
+
+                    // Display Calculated Delivery Info
+                    if (quantity > 0) {
+                        itemDeliveryScheduleEl.classList.remove('hidden');
+                        if (isNaN(totalDeliveryMonths)) {
+                             deliveryValueEl.textContent = `${deliveryTimeText} (Calculation N/A)`;
+                        } else if (totalDeliveryMonths === 0) {
+                            deliveryValueEl.textContent = `Immediate`;
+                        } else if (buildTimeMonths < 12 && buildTimeMonths > 0) {
+                            // Sub-1-year build time display
+                            let deliveryDetails = `${deliveryTimeText} build time per unit.`;
+                            if (quantity > 1) {
+                                const totalYearsEst = Math.ceil(totalDeliveryMonths / 12);
+                                const yearsText = totalYearsEst === 1 ? 'year' : 'years';
+                                deliveryDetails += ` Total est. ${totalYearsEst} ${yearsText} at ${deliveriesPerYear}/yr rate.`;
+                            }
+                            deliveryValueEl.textContent = deliveryDetails;
+                        } else { // buildTimeMonths >= 12
+                            const totalYears = Math.ceil(totalDeliveryMonths / 12);
+                            const yearsText = totalYears === 1 ? 'year' : 'years';
+                            deliveryValueEl.textContent = `Approx. ${totalYears} ${yearsText} total (${deliveryTimeText} build time)`;
+                        }
+                    }
+
+
+                    // --- Automatic Payment Spread Logic ---
+                    let isSpread = false; // Default to not spread
+                    let paymentYears = 1; // Default payment duration
+
+                    // Automatically spread if total delivery time > 12 months
+                    if (!isNaN(totalDeliveryMonths) && totalDeliveryMonths > 12) {
+                        isSpread = true;
+                        paymentYears = Math.ceil(totalDeliveryMonths / 12); // Spread over delivery duration
+                    }
+
+                    // Update UI based on automatic decision
+                    spreadCheckbox.checked = isSpread; // Show the automatic decision
+                    yearsInput.value = paymentYears;   // Show the calculated years
+                    yearsContainer.classList.toggle('hidden', !isSpread); // Show years input only if spread
+
+                    // Calculate first year cost
+                    if (isSpread && paymentYears > 1 && itemTotal > 0) {
+                        itemFirstYearCost = itemTotal / paymentYears;
+                        paymentPerYearEl.textContent = formatCurrency(itemFirstYearCost);
+                        paymentTotalEl.textContent = formatCurrency(itemTotal);
+                        paymentDurationEl.textContent = paymentYears;
+                        paymentInfoEl.classList.remove('hidden');
+                    } else {
+                        itemFirstYearCost = itemTotal; // Full cost if not spread
+                        paymentInfoEl.classList.add('hidden');
+                    }
+
+                    // Add item costs to overall totals
+                    firstYearTotalCost += itemFirstYearCost;
+                    grandTotalCost += itemTotal;
+
+                    // Show/hide approval notice
+                    itemApprovalNotice.classList.toggle('hidden', !(needsApproval && quantity > 0));
+                    if (needsApproval && quantity > 0) {
+                        requiresApproval = true;
+                    }
+
+                    // Check item validity
+                    if (quantity <= 0) {
+                        isFormValid = false;
+                    }
+
+                }); // --- End of loop through order items ---
+
+                // Update Order Summary Display
+                firstYearCostEl.textContent = formatCurrency(firstYearTotalCost);
+                totalOrderValueEl.textContent = formatCurrency(grandTotalCost);
+                const remaining = currentBudget - firstYearTotalCost;
+                remainingBudgetEl.textContent = formatCurrency(remaining);
+
+                // Show/hide global approval notice
+                globalApprovalNotice.classList.toggle('hidden', !requiresApproval);
+
+                // Final Form Validation Logic
+                let errorMsg = '';
+                const currentItemCount = orderItemsContainer.querySelectorAll('.order-item').length;
+
+                if (!isFormValid && grandTotalCost > 0) { // Check if invalid due to quantity <= 0 on an item
+                    errorMsg = 'Error: Please ensure all items have a quantity greater than 0.';
+                } else if (firstYearTotalCost > currentBudget) {
+                    errorMsg = 'Error: Estimated first year cost exceeds available procurement budget.';
+                    isFormValid = false; // Mark invalid if over budget
+                } else if (currentItemCount === 0) {
+                    // No items left in the form
+                    errorMsg = 'Please add at least one item to the order.';
+                    isFormValid = false;
+                } else if (grandTotalCost <= 0) {
+                     // Check if form has items but total is 0 (e.g., no equipment selected or 0 quantity everywhere)
+                     const firstSelect = orderItemsContainer.querySelector('.equipment-select');
+                     const firstQuantityInput = orderItemsContainer.querySelector('.quantity-input');
+                     if (firstSelect && firstSelect.value && firstQuantityInput && parseInt(firstQuantityInput.value) <= 0) {
+                         errorMsg = 'Error: Please enter a quantity greater than 0 for selected items.';
+                     } else {
+                         // Handles cases like blank items remaining
+                         errorMsg = 'Please select equipment and quantity for all items.';
+                     }
+                     isFormValid = false;
+                 }
+
+                errorMessageEl.textContent = errorMsg;
+                errorMessageEl.classList.toggle('hidden', isFormValid); // Show error message only if form is invalid OR completely empty
+                submitButton.disabled = !isFormValid;
+            }
+
+            // Function to format currency consistently
+            function formatCurrency(amount) {
+                if (!isFinite(amount)) {
+                    return '$0.00';
+                }
+                return '$' + amount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+
+            // Event listener for adding new item blocks
+            addItemBtn.addEventListener('click', () => {
+                itemCounter++;
+                const newItem = document.createElement('div');
+                newItem.classList.add('order-item');
+                newItem.setAttribute('data-item-id', itemCounter);
+
+                const firstItem = orderItemsContainer.querySelector('.order-item');
+                // Use a template or clone the first item carefully
+                let templateHTML = '';
+                if (firstItem) {
+                    templateHTML = firstItem.innerHTML;
+                } else {
+                    // Basic template if the first item was removed (should ideally not happen if validation prevents empty form)
+                    // This part needs careful design based on how you want to handle adding to an empty form
+                    console.error("Cannot add item: No template item found.");
+                    return;
+                }
+
+
+                let newItemHTML = templateHTML;
+                // Replace IDs and names using regex
+                newItemHTML = newItemHTML.replace(/_1/g, `_${itemCounter}`);
+                newItemHTML = newItemHTML.replace(/\[1\]/g, `[${itemCounter}]`);
+                // Ensure the name for the informational checkbox is unique if needed
+                newItemHTML = newItemHTML.replace('name="order_items[1][spread_payment_info]"', `name="order_items[${itemCounter}][spread_payment_info]"`);
+
+
+                newItem.innerHTML = newItemHTML;
+
+                // Reset values and states for the new item block
+                newItem.querySelector('.equipment-select').selectedIndex = 0;
+                newItem.querySelector('.quantity-input').value = 1;
+                newItem.querySelector('.spread-payment-checkbox').checked = false; // Reset informational checkbox
+                newItem.querySelector('.payment-years-container').classList.add('hidden');
+                newItem.querySelector('.payment-years-input').value = 1; // Reset years
+                newItem.querySelector('.deliveries-per-year-input').value = 1;
+                newItem.querySelector('.deliveries-per-year-container').classList.add('hidden');
+                newItem.querySelector('.item-cost').textContent = '$0.00';
+                newItem.querySelector('.item-approval-notice').classList.add('hidden');
+                newItem.querySelector('.item-delivery-schedule').classList.add('hidden');
+                newItem.querySelector('.item-payment-info').classList.add('hidden');
+
+
+                orderItemsContainer.appendChild(newItem);
+                attachItemListeners(newItem); // Attach listeners, including remove button listener
+                updateSummary(); // Recalculate
+            });
+
+            // Function to attach event listeners to controls within an item block
+            function attachItemListeners(item) {
+                const select = item.querySelector('.equipment-select');
+                const quantityInput = item.querySelector('.quantity-input');
+                const deliveriesInput = item.querySelector('.deliveries-per-year-input');
+                const removeBtn = item.querySelector('.remove-item-btn'); // Get remove button
+
+                // Add listeners that trigger recalculation
+                if (select) select.addEventListener('change', updateSummary);
+                if (quantityInput) quantityInput.addEventListener('input', updateSummary);
+                if (deliveriesInput) deliveriesInput.addEventListener('input', updateSummary);
+
+                // Add listener for the remove button
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', () => {
+                        item.remove(); // Remove the entire order item div
+                        updateSummary(); // Recalculate after removing
+                    });
+                }
+            }
+
+            // Attach listeners to the initial item block(s)
+            orderItemsContainer.querySelectorAll('.order-item').forEach(attachItemListeners);
+
+            // Perform initial calculation
+            updateSummary();
+
+        }); // End DOMContentLoaded
+    </script>
+
+</body>
+</html>
